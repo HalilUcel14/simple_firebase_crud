@@ -27,7 +27,7 @@ class HomePage extends HookWidget {
           ConnectionNetworkWidget(
         // Hucel_widget paketinden gelir İnternet Bağlılığına bakar
         snapshot: snapshot,
-        connectedWidget: const HomeBody(), // Bağlı ise Dönecek Widget
+        connectedWidget: HomeBody(), // Bağlı ise Dönecek Widget
         notConnectedWidget: const Center(
           child: Text("isNotConnected"), // Bağlı Değil ise Dönecek Widget
         ),

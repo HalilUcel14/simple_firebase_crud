@@ -6,7 +6,8 @@ import '../../../model/fire_user.dart';
 import '../../../viewmodel/home_page_viewmodel.dart';
 
 class HomeBody extends StatelessWidget {
-  const HomeBody({Key? key}) : super(key: key);
+  HomeBody({Key? key}) : super(key: key);
+  late HomePageViewModel viewModels;
 
   @override
   Widget build(BuildContext context) {
@@ -23,34 +24,53 @@ class HomeBody extends StatelessWidget {
   }
 
   Scaffold _scaffold(HomePageViewModel viewModel, BuildContext context) {
+    viewModels = viewModel; // Sayfanın Genelinde Kullanım İçin
     return Scaffold(
-      appBar: appBar(viewModel, context),
-      body: StreamBuilder<List<FireUser>>(
-        stream: viewModel.readUsers(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text('Something Went Wrong! ${snapshot.error} ');
-          } else if (snapshot.hasData) {
-            final users = snapshot.data!;
-            return ListView(
-              children: users.map(buildUser).toList(),
-            );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        },
+      appBar: appBar(context, viewModel),
+      body: Column(
+        children: [
+          Expanded(
+            child: _streamBuilder(),
+          ),
+        ],
       ),
     );
   }
 
-  Widget buildUser(FireUser user) => ListTile(
+  StreamBuilder<List<FireUser>> _streamBuilder() {
+    return StreamBuilder<List<FireUser>>(
+      stream: viewModels.readUsers(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text('Something Went Wrong! ${snapshot.error} ');
+        } else if (snapshot.hasData) {
+          final users = snapshot.data!;
+          return ListView(
+            children: users.map(buildUser).toList(),
+          );
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      },
+    );
+  }
+
+  Widget buildUser(
+    FireUser user,
+  ) =>
+      ListTile(
         leading: CircleAvatar(
           child: Text('${user.age}'),
         ),
         title: Text(user.name.toString()),
         subtitle: Text(user.id.toString()),
+        trailing: IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              viewModels.deleteUser(user.id);
+            }),
       );
 }
 
@@ -60,55 +80,54 @@ class HomeBody extends StatelessWidget {
 ///
 ///
 
-extension AppBarExtension on HomeBody {
-  AppBar appBar(HomePageViewModel viewModel, BuildContext context) {
-    return AppBar(
-      title: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: _appTextField(viewModel,
-            context: context), // iki şekildede atama yapılabilir.
+AppBar appBar(BuildContext context, HomePageViewModel viewModels) {
+  return AppBar(
+    title: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: _appTextField(
+          context: context,
+          viewModels: viewModels), // iki şekildede atama yapılabilir.
+    ),
+    actions: [
+      IconButton(
+        onPressed: viewModels.iconButtonPress,
+        icon: const Icon(Icons.add),
       ),
-      actions: [
-        IconButton(
-          onPressed: viewModel.iconButtonPress,
-          icon: const Icon(Icons.add),
-        ),
-      ],
-    );
-  }
+    ],
+  );
+}
 
-  TextField _appTextField(HomePageViewModel viewModel,
-      {required BuildContext context}) {
-    return TextField(
-      controller: viewModel.controller,
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: context
-            .heightM, // hucel_core paketinden gelmektedir. oto değer alır size değerine oranlı
-      ),
-      decoration: InputDecoration(
-        hintText: AppString.hintText,
-        hintStyle: const TextStyle(color: Colors.white),
-        contentPadding: context
-            .padAllNormaly, // hucel_core paketinden gelmektedir. oto padding alır size değerine oranlı
-        disabledBorder: _outlinedBorder(),
-        focusedBorder: _outlinedBorder(),
-        enabledBorder: _outlinedBorder(),
-      ),
-    );
-  }
+TextField _appTextField(
+    {required BuildContext context, required HomePageViewModel viewModels}) {
+  return TextField(
+    controller: viewModels.controller,
+    style: TextStyle(
+      color: Colors.white,
+      fontSize: context
+          .heightM, // hucel_core paketinden gelmektedir. oto değer alır size değerine oranlı
+    ),
+    decoration: InputDecoration(
+      hintText: AppString.hintText,
+      hintStyle: const TextStyle(color: Colors.white),
+      contentPadding: context
+          .padAllNormaly, // hucel_core paketinden gelmektedir. oto padding alır size değerine oranlı
+      disabledBorder: _outlinedBorder(),
+      focusedBorder: _outlinedBorder(),
+      enabledBorder: _outlinedBorder(),
+    ),
+  );
+}
 
-  OutlineInputBorder _outlinedBorder() {
-    return OutlineInputBorder(
-      borderRadius: const BorderRadius.all(
-        Radius.circular(24),
-      ),
-      borderSide: BorderSide(
-        color: AppString.textfieldOutlinedColor
-            .color, // hucel_core paketinden geliyor. Text'ten Color Getiriyor
-        style: BorderStyle.solid,
-        width: 3,
-      ),
-    );
-  }
+OutlineInputBorder _outlinedBorder() {
+  return OutlineInputBorder(
+    borderRadius: const BorderRadius.all(
+      Radius.circular(24),
+    ),
+    borderSide: BorderSide(
+      color: AppString.textfieldOutlinedColor
+          .color, // hucel_core paketinden geliyor. Text'ten Color Getiriyor
+      style: BorderStyle.solid,
+      width: 3,
+    ),
+  );
 }

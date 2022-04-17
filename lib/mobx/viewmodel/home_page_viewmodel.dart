@@ -26,11 +26,11 @@ abstract class _HomePageViewModelBase with Store, BaseViewModel {
     readUsers();
   }
 
-  Future createUser({required String name}) async {
-    final myDocumentUser = FirebaseFirestore.instance
-        .collection(AppString.defaultFirebaseCollection)
-        .doc();
+  final myDocumentUser = FirebaseFirestore.instance
+      .collection(AppString.defaultFirebaseCollection)
+      .doc();
 
+  Future createUser({required String name}) async {
     final addtoDocument = FireUser(
       id: myDocumentUser.id,
       age: Random().nextInt(25),
@@ -40,6 +40,13 @@ abstract class _HomePageViewModelBase with Store, BaseViewModel {
     await myDocumentUser.set(toJson);
 
     controller.text = "";
+  }
+
+  Future deleteUser(String doc) async {
+    final _myDocumentUser = FirebaseFirestore.instance
+        .collection(AppString.defaultFirebaseCollection)
+        .doc(doc);
+    _myDocumentUser.delete();
   }
 
   Stream<List<FireUser>> readUsers() => FirebaseFirestore.instance
